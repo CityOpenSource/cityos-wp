@@ -100,12 +100,6 @@ class Cityos_Public {
 
 	}
 
-
-
-
-
-
-
 	public function register_shortcodes(){
       function cityos_map($atts){
 				//[cityos map="mappina" filters="" secret="<codice>"]
