@@ -100,12 +100,21 @@ class Cityos_Public {
 
 	}
 
+
+
+
+
+
+
 	public function register_shortcodes(){
       function cityos_map($atts){
+				//[cityos map="mappina" filters="" secret="<codice>"]
+				//[cityos map="mappina" mapper="marco.montanari" filters="" secret="<codice>"]
         $a = shortcode_atts( array(
 					"height" => 300,
 					"type" => "school",
 					"secret" => "",
+					"filters" => ""
 					"map" => "",
 					"mapper" => ""
         ), $atts );
@@ -132,9 +141,8 @@ class Cityos_Public {
 				return $ret;
       }
 
-
-
       function cityos_map_contributors($atts){
+				//[cityos_contributors map="mappina" secret="<codice>" num="6"]
 				shortcode_atts( array(
 					"mode" => "default",
 					"height" => 300,
@@ -143,31 +151,33 @@ class Cityos_Public {
 					"map" => "",
 					"mapper" => ""
 				), $atts );
-				return "";
+
+				$data = file_get_contents("http://cityopensource.com/api/v1/spaces/".$a["map"]."/contributors?secret=".$a["secret"]);
+				return $data;
+				//$data = json_decode($data);
+
       }
 
       function cityos_items($atts){
+				//[cityos_items map="mappina" secret="<codice>" num="5"]
 				shortcode_atts( array(
-					"mode" => "default",
-					"height" => 300,
-					"type" => "school",
 					"secret" => "",
 					"map" => "",
-					"mapper" => ""
+					"num" => 5
 				), $atts );
-				return "";
+				$data = file_get_contents("http://cityopensource.com/api/v1/spaces/".$a["map"]."/locations/latest?secret=".$a["secret"]."&a=".$a["num"]);
+				return $data;
       }
 
       function cityos_activity($atts){
+				//[cityos_activity map="mappina" secret="<codice>" num="20"]
 				shortcode_atts( array(
-					"mode" => "default",
-					"height" => 300,
-					"type" => "school",
-					"secret" => "",
 					"map" => "",
-					"mapper" => ""
+					"secret" => "",
+					"num" => 20,
 				), $atts );
-				return "";
+				$data = file_get_contents("http://cityopensource.com/api/v1/spaces/".$a["map"]."/activities?secret=".$a["secret"]."&a=".$a["num"]);
+				return $data;
       }
 
 			add_shortcode("cityos", "cityos_map");
