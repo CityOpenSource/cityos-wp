@@ -108,7 +108,7 @@ class Cityos_Public {
 					"height" => 300,
 					"type" => "school",
 					"secret" => "",
-					"filters" => ""
+					"filters" => "",
 					"map" => "",
 					"mapper" => ""
         ), $atts );
@@ -125,10 +125,10 @@ class Cityos_Public {
 				$ret .= "<script>\n";
 				$ret .= "jQuery(function(){\n";
 				$ret .= "\tvar map = L.map('map');\n";
-				$ret .= "\tvar layer = L.tileLayer(".$data["background"].", {attribution: ".$data["attribution"]."});\n";
+				$ret .= "\tvar layer = L.tileLayer('".$data->background."', {attribution: '".$data->attribution."'});\n";
 				$ret .= "\tmap.addLayer(layer);\n";
-				$ret .= "\tmap.setView([".$data["center"]["coordinates"][0].",".$data["center"]["coordinates"][1]."], ".$data["zoom"].");\n";
-				$ret .= "\tvar locations='http://cityopensource.com/api/v1/spaces/".$a["map"]."?secret=".$a["secret"]."\n";
+				$ret .= "\tmap.setView([".$data->center->coordinates[1].",".$data->center->coordinates[0]."], ".$data->zoom.");\n";
+				$ret .= "\tvar locations='http://cityopensource.com/api/v1/spaces/".$a["map"]."?secret=".$a["secret"]."'\n";
 				$ret .= "});\n";
 				$ret .= "</script>";
 
@@ -137,7 +137,7 @@ class Cityos_Public {
 
       function cityos_map_contributors($atts){
 				//[cityos_contributors map="mappina" secret="<codice>" num="6"]
-				shortcode_atts( array(
+				$a = shortcode_atts( array(
 					"mode" => "default",
 					"height" => 300,
 					"type" => "school",
@@ -154,7 +154,7 @@ class Cityos_Public {
 
       function cityos_items($atts){
 				//[cityos_items map="mappina" secret="<codice>" num="5"]
-				shortcode_atts( array(
+				$a = shortcode_atts( array(
 					"secret" => "",
 					"map" => "",
 					"num" => 5
@@ -165,13 +165,14 @@ class Cityos_Public {
 
       function cityos_activity($atts){
 				//[cityos_activity map="mappina" secret="<codice>" num="20"]
-				shortcode_atts( array(
+				$a = shortcode_atts( array(
 					"map" => "",
 					"secret" => "",
 					"num" => 20,
 				), $atts );
 				$data = file_get_contents("http://cityopensource.com/api/v1/spaces/".$a["map"]."/activities?secret=".$a["secret"]."&a=".$a["num"]);
 				return $data;
+
       }
 
 			add_shortcode("cityos", "cityos_map");
