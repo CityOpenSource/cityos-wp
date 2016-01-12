@@ -101,6 +101,16 @@ class Cityos_Public {
 	}
 
 	public function register_shortcodes(){
+
+		function generateRandomString($length = 10) {
+		    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		    $charactersLength = strlen($characters);
+		    $randomString = '';
+		    for ($i = 0; $i < $length; $i++) {
+		        $randomString .= $characters[rand(0, $charactersLength - 1)];
+		    }
+		    return $randomString;
+		}
       function cityos_map($atts){
 				//[cityos map="mappina" filters="" secret="<codice>"]
 				//[cityos map="mappina" mapper="marco.montanari" filters="" secret="<codice>"]
@@ -113,7 +123,12 @@ class Cityos_Public {
 					"mapper" => ""
         ), $atts );
 
-				$data = file_get_contents("http://cityopensource.com/api/v1/spaces/".$a["map"]."?secret=".$a["secret"]);
+				$mid = generateRandomString(10);
+
+				$url = "http://cityopensource.com/api/v1/spaces/".$a["map"];
+				$url .= "?secret=".$a["secret"];
+
+				$data = file_get_contents($url);
 				$data = json_decode($data);
 
 				$ret = "";
@@ -121,14 +136,28 @@ class Cityos_Public {
 				$ret .= "<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.css' rel='stylesheet' />\n";
 				$ret .= "<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.Default.css' rel='stylesheet' />\n";
 				$ret .= "<script src='http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js'></script>";
-				$ret .= "<div id='map' style='height:".$a["height"]."px;'></div>\n";
+				$ret .= "<div id='map_".$mid."' style='height:".$a["height"]."px;'></div>\n";
 				$ret .= "<script>\n";
 				$ret .= "jQuery(function(){\n";
-				$ret .= "\tvar map = L.map('map');\n";
+				$ret .= "\tvar map = L.map('map_".$mid."');\n";
 				$ret .= "\tvar layer = L.tileLayer('".$data->background."', {attribution: '".$data->attribution."'});\n";
 				$ret .= "\tmap.addLayer(layer);\n";
 				$ret .= "\tmap.setView([".$data->center->coordinates[1].",".$data->center->coordinates[0]."], ".$data->zoom.");\n";
-				$ret .= "\tvar locations='http://cityopensource.com/api/v1/spaces/".$a["map"]."?secret=".$a["secret"]."'\n";
+				$ret .= "\tvar locations='http://cityopensource.com/api/v1/spaces/".$a["map"]."/locations"."?secret=".$a["secret"]."&bbox=' + map.getBounds().toBBoxString()+'".($a["mapper"] != ""?"&contributor=".$a["mapper"]:"")."';\n";
+				$ret .= "\tvar styles='http://cityopensource.com/api/v1/spaces/".$a["map"]."/styles?secret=".$a["secret"]."'\n";
+				$ret .= "\tjQuery.getJSON(locations, function(space_locations){
+						L.geoJson(space_locations.features, {
+						pointToLayer:function(feature, latlng){
+							if (feature.properties.types !== undefined)
+								return L.marker(latlng);
+							else
+								return L.marker(latlng);
+						},
+						onEachFeature:function(feature, layer){
+							layer.bindPopup('<div></div>');
+						}
+					}).addTo(map);
+				});\n";
 				$ret .= "});\n";
 				$ret .= "</script>";
 
@@ -138,16 +167,17 @@ class Cityos_Public {
       function cityos_map_contributors($atts){
 				//[cityos_contributors map="mappina" secret="<codice>" num="6"]
 				$a = shortcode_atts( array(
-					"mode" => "default",
-					"height" => 300,
-					"type" => "school",
 					"secret" => "",
 					"map" => "",
-					"mapper" => ""
+					"var_name" => "contributors",
+					"script" => true
 				), $atts );
 
 				$data = file_get_contents("http://cityopensource.com/api/v1/spaces/".$a["map"]."/contributors?secret=".$a["secret"]);
-				return $data;
+				$ret = $data;
+				if($a["script"])
+					$ret = "<script> var ".$a["var_name"]." = ".json_encode(json_decode($ret)).";</script>";
+				return $ret;
 				//$data = json_decode($data);
 
       }
@@ -157,10 +187,15 @@ class Cityos_Public {
 				$a = shortcode_atts( array(
 					"secret" => "",
 					"map" => "",
-					"num" => 5
+					"num" => 5,
+					"var_name" => "items",
+					"script" => true
 				), $atts );
 				$data = file_get_contents("http://cityopensource.com/api/v1/spaces/".$a["map"]."/locations/latest?secret=".$a["secret"]."&a=".$a["num"]);
-				return $data;
+				$ret = $data;
+				if($a["script"])
+					$ret = "<script> var ".$a["var_name"]." = ".json_encode(json_decode($ret)).";</script>";
+				return $ret;
       }
 
       function cityos_activity($atts){
@@ -169,9 +204,14 @@ class Cityos_Public {
 					"map" => "",
 					"secret" => "",
 					"num" => 20,
+					"var_name" => "activities",
+					"script" => true
 				), $atts );
 				$data = file_get_contents("http://cityopensource.com/api/v1/spaces/".$a["map"]."/activities?secret=".$a["secret"]."&a=".$a["num"]);
-				return $data;
+				$ret = $data;
+				if($a["script"])
+					$ret = "<script> var ".$a["var_name"]." = ".json_encode(json_decode($ret)).";</script>";
+				return $ret;
 
       }
 
